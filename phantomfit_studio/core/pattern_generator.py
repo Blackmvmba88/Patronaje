@@ -16,7 +16,7 @@ class PatternGenerator:
     
     def __init__(self, language_manager: Optional['LanguageManager'] = None):
         self.supported_garments = [
-            "blouse", "shirt", "pants", "skirt", "dress", "jacket"
+            "blouse", "shirt", "pants", "skirt", "dress", "jacket", "sock", "boxer"
         ]
         self.lang = language_manager
     
@@ -53,6 +53,10 @@ class PatternGenerator:
             return self._generate_dress(measurements, style_options)
         elif garment_type == "jacket":
             return self._generate_jacket(measurements, style_options)
+        elif garment_type == "sock":
+            return self._generate_sock(measurements, style_options)
+        elif garment_type == "boxer":
+            return self._generate_boxer(measurements, style_options)
         
         return {}
     
@@ -256,6 +260,109 @@ class PatternGenerator:
         
         return self._generate_blouse(measurements_with_ease, style_options)
     
+    def _generate_sock(self, 
+                       measurements: Dict[str, float],
+                       style_options: Dict[str, Any]) -> Dict[str, Any]:
+        """Genera patrón de calcetín."""
+        foot_length = measurements.get("foot_length", 25)
+        foot_width = measurements.get("foot_width", 10)
+        ankle_circumference = measurements.get("ankle_circumference", 22)
+        calf_circumference = measurements.get("calf_circumference", 35)
+        sock_height = measurements.get("sock_height", 20)
+        
+        style = style_options.get("style", "ankle")  # ankle, crew, knee-high
+        
+        # Ajustar altura según estilo
+        if style == "ankle":
+            sock_height = min(sock_height, 10)
+        elif style == "crew":
+            sock_height = min(sock_height, 20)
+        elif style == "knee-high":
+            sock_height = max(sock_height, 35)
+        
+        ease = style_options.get("ease", 1)  # Elasticidad del calcetín
+        
+        pieces = [
+            {
+                "name": "sock_body",
+                "type": "tubular",
+                "points": self._calculate_sock_body(
+                    foot_length, foot_width, ankle_circumference, 
+                    calf_circumference, sock_height, ease
+                ),
+                "seam_allowance": 0.5
+            },
+            {
+                "name": "heel",
+                "type": "heel_patch",
+                "points": self._calculate_sock_heel(foot_length, foot_width, ease),
+                "seam_allowance": 0.5
+            },
+            {
+                "name": "toe",
+                "type": "toe_cap",
+                "points": self._calculate_sock_toe(foot_width, ease),
+                "seam_allowance": 0.5
+            }
+        ]
+        
+        return {
+            "garment_type": "sock",
+            "measurements": measurements,
+            "style_options": style_options,
+            "pieces": pieces,
+            "fabric_required": self._calculate_fabric_required(pieces)
+        }
+    
+    def _generate_boxer(self, 
+                        measurements: Dict[str, float],
+                        style_options: Dict[str, Any]) -> Dict[str, Any]:
+        """Genera patrón de boxer."""
+        waist = measurements.get("waist", 75)
+        hip = measurements.get("hip", 95)
+        inseam = measurements.get("inseam", 10)  # Entrepierna corta para boxer
+        thigh = measurements.get("thigh_circumference", 55)
+        rise = measurements.get("rise", 25)  # Altura del tiro
+        
+        ease = style_options.get("ease", 5)  # Holgura cómoda
+        leg_opening = style_options.get("leg_opening", "loose")  # loose, fitted
+        
+        # Ajustar medida de entrepierna para boxer (más corta que pantalones)
+        boxer_inseam = min(inseam, 15)
+        
+        pieces = [
+            {
+                "name": "front",
+                "type": "front_panel",
+                "points": self._calculate_boxer_front(
+                    waist, hip, thigh, boxer_inseam, rise, ease
+                ),
+                "seam_allowance": 1.0
+            },
+            {
+                "name": "back",
+                "type": "back_panel",
+                "points": self._calculate_boxer_back(
+                    waist, hip, thigh, boxer_inseam, rise, ease
+                ),
+                "seam_allowance": 1.0
+            },
+            {
+                "name": "waistband",
+                "type": "band",
+                "points": self._calculate_boxer_waistband(waist, ease),
+                "seam_allowance": 0.5
+            }
+        ]
+        
+        return {
+            "garment_type": "boxer",
+            "measurements": measurements,
+            "style_options": style_options,
+            "pieces": pieces,
+            "fabric_required": self._calculate_fabric_required(pieces)
+        }
+    
     # Métodos auxiliares para calcular puntos de patrón
     
     def _calculate_blouse_front(self, bust: float, waist: float, 
@@ -380,6 +487,103 @@ class PatternGenerator:
                                panel_type: str) -> List[Tuple[float, float]]:
         """Calcula puntos de la falda del vestido."""
         return self._calculate_skirt_panel(waist, hip, length, panel_type)
+    
+    def _calculate_sock_body(self, foot_length: float, foot_width: float,
+                             ankle_circ: float, calf_circ: float,
+                             height: float, ease: float) -> List[Tuple[float, float]]:
+        """Calcula puntos del cuerpo del calcetín (patrón plano para tejido tubular)."""
+        # El patrón de calcetín se crea como rectángulo que se enrolla
+        ankle_width = (ankle_circ + ease) / 2
+        calf_width = (calf_circ + ease) / 2
+        foot_flat_width = (foot_width * 2 + ease) / 2
+        
+        return [
+            (0, 0),
+            (ankle_width, 0),
+            (calf_width, height * 0.3),
+            (calf_width, height),
+            (0, height),
+            (0, height * 0.3),
+            (0, 0)
+        ]
+    
+    def _calculate_sock_heel(self, foot_length: float, foot_width: float,
+                             ease: float) -> List[Tuple[float, float]]:
+        """Calcula puntos del refuerzo del talón."""
+        heel_width = foot_width + ease
+        heel_height = foot_length * 0.25
+        
+        return [
+            (0, 0),
+            (heel_width, 0),
+            (heel_width, heel_height),
+            (heel_width * 0.5, heel_height * 1.2),
+            (0, heel_height),
+            (0, 0)
+        ]
+    
+    def _calculate_sock_toe(self, foot_width: float, ease: float) -> List[Tuple[float, float]]:
+        """Calcula puntos del refuerzo de la punta."""
+        toe_width = foot_width + ease
+        toe_height = foot_width * 0.8
+        
+        return [
+            (0, 0),
+            (toe_width, 0),
+            (toe_width, toe_height),
+            (toe_width * 0.5, toe_height * 1.1),
+            (0, toe_height),
+            (0, 0)
+        ]
+    
+    def _calculate_boxer_front(self, waist: float, hip: float, thigh: float,
+                               inseam: float, rise: float, ease: float) -> List[Tuple[float, float]]:
+        """Calcula puntos del delantero del boxer."""
+        waist_width = (waist + ease) / 4
+        hip_width = (hip + ease) / 4
+        thigh_width = (thigh + ease) / 4
+        
+        return [
+            (0, 0),
+            (waist_width, 0),
+            (hip_width, rise * 0.5),
+            (thigh_width, rise),
+            (thigh_width - 1, rise + inseam),
+            (1, rise + inseam),
+            (0, rise),
+            (0, 0)
+        ]
+    
+    def _calculate_boxer_back(self, waist: float, hip: float, thigh: float,
+                              inseam: float, rise: float, ease: float) -> List[Tuple[float, float]]:
+        """Calcula puntos de la parte trasera del boxer."""
+        waist_width = (waist + ease) / 4 + 2
+        hip_width = (hip + ease) / 4 + 2
+        thigh_width = (thigh + ease) / 4
+        
+        return [
+            (0, 0),
+            (waist_width, 0),
+            (hip_width, rise * 0.5),
+            (thigh_width, rise),
+            (thigh_width - 1, rise + inseam),
+            (1, rise + inseam),
+            (0, rise),
+            (0, 0)
+        ]
+    
+    def _calculate_boxer_waistband(self, waist: float, ease: float) -> List[Tuple[float, float]]:
+        """Calcula puntos de la pretina del boxer."""
+        band_length = waist + ease
+        band_width = 4  # Ancho estándar de pretina elástica
+        
+        return [
+            (0, 0),
+            (band_length, 0),
+            (band_length, band_width),
+            (0, band_width),
+            (0, 0)
+        ]
     
     def _calculate_fabric_required(self, pieces: List[Dict[str, Any]]) -> Dict[str, float]:
         """Calcula la cantidad de tela requerida."""
