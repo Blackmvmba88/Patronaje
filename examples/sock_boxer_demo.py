@@ -99,7 +99,7 @@ def main():
     os.makedirs(output_dir, exist_ok=True)
     
     # Exportar calcetín
-    sock_svg = os.path.join(output_dir, "calcecin_patron.svg")
+    sock_svg = os.path.join(output_dir, "calcetin_patron.svg")
     studio.export_pattern(sock_svg, format="svg")
     print(f"\n  ✓ Patrón de calcetín exportado: {sock_svg}")
     
