@@ -1,0 +1,11 @@
+# PhantomFit Studio - Dependencias
+
+# Core dependencies - estas son las bibliotecas mínimas necesarias
+# En el futuro, se pueden agregar bibliotecas adicionales para:
+# - Visualización 3D avanzada (OpenGL, VTK, Three.js via PyScript)
+# - Exportación PDF (reportlab)
+# - Exportación DXF (ezdxf)
+# - Renderizado (matplotlib, pillow)
+
+# No se requieren dependencias externas para la funcionalidad básica
+# El sistema está diseñado para funcionar con Python estándar
