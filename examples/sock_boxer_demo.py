@@ -42,15 +42,15 @@ def main():
     print("\n  Generando patrón de calcetín estilo 'crew'...")
     print("  (Con colores personalizados)")
     sock_pattern = studio.generate_pattern(
-        garment_type="sock",
+        garment_type="calcetín",
         measurements=sock_measurements,
         style_options={
             "style": "crew", 
             "ease": 1,
-            "colors": {
-                "body": "#87CEEB",   # Azul cielo
-                "heel": "#FFB6C1",   # Rosa claro
-                "toe": "#98FB98"     # Verde claro
+            "colores": {
+                "cuerpo": "#87CEEB",  # Azul cielo
+                "talón": "#FFB6C1",   # Rosa claro
+                "punta": "#98FB98"    # Verde claro
             }
         }
     )
@@ -90,10 +90,10 @@ def main():
         style_options={
             "ease": 5, 
             "leg_opening": "loose",
-            "colors": {
-                "front": "#FFE4B5",    # Beige claro
-                "back": "#F0E68C",     # Amarillo claro
-                "waistband": "#DDA0DD" # Ciruela
+            "colores": {
+                "delantero": "#FFE4B5",  # Beige claro
+                "trasero": "#F0E68C",    # Amarillo claro
+                "pretina": "#DDA0DD"     # Ciruela
             }
         }
     )
@@ -134,10 +134,10 @@ def main():
     # Generar boxer nuevamente (para que sea el patrón actual)
     studio.generate_pattern("boxer", boxer_measurements, style_options={
         "ease": 5,
-        "colors": {
-            "front": "#FFE4B5",
-            "back": "#F0E68C",
-            "waistband": "#DDA0DD"
+        "colores": {
+            "delantero": "#FFE4B5",
+            "trasero": "#F0E68C",
+            "pretina": "#DDA0DD"
         }
     })
     boxer_svg = os.path.join(output_dir, "boxer_patron.svg")

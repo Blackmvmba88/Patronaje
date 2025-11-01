@@ -35,7 +35,7 @@ def test_sock_generation():
     for style in styles:
         print(f"\n  Generando calcetín estilo '{style}'...")
         pattern = studio.generate_pattern(
-            garment_type="sock",
+            garment_type="calcetín",
             measurements=measurements,
             style_options={"style": style, "ease": 1}
         )
@@ -113,7 +113,7 @@ def test_combined_measurements():
     }
     
     print("\n  Generando calcetín con medidas grandes...")
-    sock_pattern = studio.generate_pattern("sock", sock_measurements)
+    sock_pattern = studio.generate_pattern("calcetín", sock_measurements)
     print(f"    ✓ Calcetín: {len(sock_pattern['pieces'])} piezas, "
           f"{sock_pattern['fabric_required']['linear_meters']:.2f}m tela")
     
@@ -143,7 +143,7 @@ def test_export():
         "sock_height": 20
     }
     
-    sock_pattern = studio.generate_pattern("sock", sock_measurements)
+    sock_pattern = studio.generate_pattern("calcetín", sock_measurements)
     
     # Exportar a SVG
     output_dir = "/tmp/phantomfit_output"

@@ -8,56 +8,60 @@ PhantomFit Studio ahora permite personalizar completamente los colores de las pi
 
 ## 📋 Opciones de Colores por Prenda
 
-### Calcetines (Sock)
+### Calcetines
 
 Personaliza los colores de cada pieza del calcetín:
 
 ```python
 sock_pattern = studio.generate_pattern(
-    garment_type="sock",
+    garment_type="calcetín",  # O "calcetin" sin tilde
     measurements={...},
     style_options={
         "style": "crew",
         "ease": 1,
-        "colors": {
-            "body": "#FF6B6B",      # Cuerpo del calcetín (rojo coral)
-            "heel": "#4ECDC4",      # Talón (turquesa)
-            "toe": "#FFE66D"        # Punta (amarillo brillante)
+        "colores": {
+            "cuerpo": "#FF6B6B",    # Cuerpo del calcetín (rojo coral)
+            "talón": "#4ECDC4",     # Talón (turquesa)
+            "punta": "#FFE66D"      # Punta (amarillo brillante)
         }
     }
 )
 ```
 
 **Piezas personalizables:**
-- `body`: Cuerpo principal del calcetín
-- `heel`: Refuerzo del talón
-- `toe`: Refuerzo de la punta
+- `cuerpo`: Cuerpo principal del calcetín
+- `talón` o `talon`: Refuerzo del talón
+- `punta`: Refuerzo de la punta
+
+**Nota:** También acepta nombres en inglés (`body`, `heel`, `toe`) para compatibilidad.
 
 ---
 
-### Boxers (Boxer Shorts)
+### Boxers
 
 Personaliza los colores de cada pieza del boxer:
 
 ```python
 boxer_pattern = studio.generate_pattern(
-    garment_type="boxer",
+    garment_type="boxer",  # O "bóxer" con acento
     measurements={...},
     style_options={
         "ease": 5,
-        "colors": {
-            "front": "#95E1D3",     # Delantero (verde menta)
-            "back": "#F38181",      # Trasero (rosa salmón)
-            "waistband": "#AA96DA"  # Pretina (lavanda)
+        "colores": {
+            "delantero": "#95E1D3",  # Delantero (verde menta)
+            "trasero": "#F38181",    # Trasero (rosa salmón)
+            "pretina": "#AA96DA"     # Pretina (lavanda)
         }
     }
 )
 ```
 
 **Piezas personalizables:**
-- `front`: Panel delantero
-- `back`: Panel trasero
-- `waistband`: Pretina elástica
+- `delantero`: Panel delantero
+- `trasero`: Panel trasero
+- `pretina`: Pretina elástica
+
+**Nota:** También acepta nombres en inglés (`front`, `back`, `waistband`) para compatibilidad.
 
 ---
 
@@ -122,7 +126,7 @@ studio = PhantomFitStudio()
 
 # Generar patrón con colores personalizados
 sock_pattern = studio.generate_pattern(
-    garment_type="sock",
+    garment_type="calcetín",
     measurements={
         "foot_length": 25,
         "foot_width": 10,
@@ -133,10 +137,10 @@ sock_pattern = studio.generate_pattern(
     style_options={
         "style": "crew",
         "ease": 1,
-        "colors": {
-            "body": "#FF6B6B",
-            "heel": "#4ECDC4",
-            "toe": "#FFE66D"
+        "colores": {
+            "cuerpo": "#FF6B6B",
+            "talón": "#4ECDC4",
+            "punta": "#FFE66D"
         }
     }
 )
@@ -171,10 +175,10 @@ boxer_pattern = studio.generate_pattern(
     },
     style_options={
         "ease": 5,
-        "colors": {
-            "front": "#FFD93D",
-            "back": "#6BCB77",
-            "waistband": "#4D96FF"
+        "colores": {
+            "delantero": "#FFD93D",
+            "trasero": "#6BCB77",
+            "pretina": "#4D96FF"
         }
     }
 )

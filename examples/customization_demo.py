@@ -40,15 +40,15 @@ def main():
     
     # Generar calcetín con colores personalizados
     sock_pattern = studio.generate_pattern(
-        garment_type="sock",
+        garment_type="calcetín",
         measurements=sock_measurements,
         style_options={
             "style": "crew",
             "ease": 1,
-            "colors": {
-                "body": "#FF6B6B",      # Rojo coral
-                "heel": "#4ECDC4",      # Turquesa
-                "toe": "#FFE66D"        # Amarillo brillante
+            "colores": {
+                "cuerpo": "#FF6B6B",    # Rojo coral
+                "talón": "#4ECDC4",     # Turquesa
+                "punta": "#FFE66D"      # Amarillo brillante
             }
         }
     )
@@ -95,10 +95,10 @@ def main():
         measurements=boxer_measurements,
         style_options={
             "ease": 5,
-            "colors": {
-                "front": "#95E1D3",     # Verde menta
-                "back": "#F38181",      # Rosa salmón
-                "waistband": "#AA96DA"  # Lavanda
+            "colores": {
+                "delantero": "#95E1D3",  # Verde menta
+                "trasero": "#F38181",    # Rosa salmón
+                "pretina": "#AA96DA"     # Lavanda
             }
         }
     )
@@ -133,15 +133,15 @@ def main():
     
     # Generar otro calcetín
     sock_pattern2 = studio.generate_pattern(
-        garment_type="sock",
+        garment_type="calcetín",
         measurements=sock_measurements,
         style_options={
             "style": "ankle",
             "ease": 1,
-            "colors": {
-                "body": "#A8DADC",      # Azul pálido
-                "heel": "#457B9D",      # Azul acero
-                "toe": "#1D3557"        # Azul marino
+            "colores": {
+                "cuerpo": "#A8DADC",    # Azul pálido
+                "talón": "#457B9D",     # Azul acero
+                "punta": "#1D3557"      # Azul marino
             }
         }
     )
@@ -171,10 +171,10 @@ def main():
         measurements=boxer_measurements,
         style_options={
             "ease": 5,
-            "colors": {
-                "front": "#FFD93D",     # Amarillo dorado
-                "back": "#6BCB77",      # Verde brillante
-                "waistband": "#4D96FF"  # Azul brillante
+            "colores": {
+                "delantero": "#FFD93D",  # Amarillo dorado
+                "trasero": "#6BCB77",    # Verde brillante
+                "pretina": "#4D96FF"     # Azul brillante
             }
         }
     )
@@ -206,9 +206,10 @@ def main():
     print("-" * 70)
     print()
     print("  Colores de piezas:")
-    print("    • Calcetín: body, heel, toe")
-    print("    • Boxer: front, back, waistband")
+    print("    • Calcetín: cuerpo, talón, punta")
+    print("    • Boxer: delantero, trasero, pretina")
     print("    • Formato: Códigos hexadecimales (#RRGGBB)")
+    print("    • También acepta nombres en inglés: body, heel, toe, front, back, waistband")
     print()
     print("  Posiciones de cuadro de datos:")
     print("    • top-right (superior derecha)")

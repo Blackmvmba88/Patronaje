@@ -15,9 +15,37 @@ class PatternGenerator:
     """
     
     def __init__(self, language_manager: Optional['LanguageManager'] = None):
+        # Prendas soportadas (en inglés para compatibilidad interna)
         self.supported_garments = [
             "blouse", "shirt", "pants", "skirt", "dress", "jacket", "sock", "boxer"
         ]
+        
+        # Mapeo de nombres en español a inglés para API en español
+        self.spanish_to_english = {
+            "blusa": "blouse",
+            "camisa": "shirt",
+            "pantalon": "pants",
+            "pantalón": "pants",
+            "falda": "skirt",
+            "vestido": "dress",
+            "chaqueta": "jacket",
+            "calcetín": "sock",
+            "calcetin": "sock",
+            "boxer": "boxer",
+            "bóxer": "boxer"
+        }
+        
+        # Mapeo de nombres de piezas en español
+        self.piece_names_spanish = {
+            "body": "cuerpo",
+            "heel": "talón",
+            "talon": "talón",
+            "toe": "punta",
+            "front": "delantero",
+            "back": "trasero",
+            "waistband": "pretina"
+        }
+        
         self.lang = language_manager
     
     def generate(self, 
@@ -28,34 +56,39 @@ class PatternGenerator:
         Genera un patrón de ropa.
         
         Args:
-            garment_type: Tipo de prenda
+            garment_type: Tipo de prenda (en español o inglés)
+                         Español: "calcetín", "boxer", "blusa", "camisa", "pantalón", "falda", "vestido", "chaqueta"
+                         Inglés: "sock", "boxer", "blouse", "shirt", "pants", "skirt", "dress", "jacket"
             measurements: Medidas corporales en cm
             style_options: Opciones de estilo
             
         Returns:
             Diccionario con el patrón generado
         """
-        if garment_type not in self.supported_garments:
+        # Traducir nombre en español a inglés si es necesario
+        garment_type_internal = self.spanish_to_english.get(garment_type.lower(), garment_type)
+        
+        if garment_type_internal not in self.supported_garments:
             raise ValueError(f"Tipo de prenda no soportado: {garment_type}")
         
         style_options = style_options or {}
         
         # Generar patrón según el tipo de prenda
-        if garment_type == "blouse":
+        if garment_type_internal == "blouse":
             return self._generate_blouse(measurements, style_options)
-        elif garment_type == "shirt":
+        elif garment_type_internal == "shirt":
             return self._generate_shirt(measurements, style_options)
-        elif garment_type == "pants":
+        elif garment_type_internal == "pants":
             return self._generate_pants(measurements, style_options)
-        elif garment_type == "skirt":
+        elif garment_type_internal == "skirt":
             return self._generate_skirt(measurements, style_options)
-        elif garment_type == "dress":
+        elif garment_type_internal == "dress":
             return self._generate_dress(measurements, style_options)
-        elif garment_type == "jacket":
+        elif garment_type_internal == "jacket":
             return self._generate_jacket(measurements, style_options)
-        elif garment_type == "sock":
+        elif garment_type_internal == "sock":
             return self._generate_sock(measurements, style_options)
-        elif garment_type == "boxer":
+        elif garment_type_internal == "boxer":
             return self._generate_boxer(measurements, style_options)
         
         return {}
@@ -282,11 +315,15 @@ class PatternGenerator:
         
         ease = style_options.get("ease", 1)  # Elasticidad del calcetín
         
-        # Opciones de personalización de colores
-        colors = style_options.get("colors", {})
-        body_color = colors.get("body", "#87CEEB")  # Azul cielo por defecto
-        heel_color = colors.get("heel", "#FFB6C1")  # Rosa claro por defecto
-        toe_color = colors.get("toe", "#98FB98")    # Verde claro por defecto
+        # Opciones de personalización de colores (acepta español e inglés)
+        colors = style_options.get("colors", {}).copy() if style_options.get("colors") else {}
+        colores = style_options.get("colores", {}).copy() if style_options.get("colores") else {}
+        colors.update(colores)  # Fusionar ambos diccionarios
+        
+        # Obtener colores con nombres en español o inglés
+        body_color = colors.get("cuerpo", colors.get("body", "#87CEEB"))  # Azul cielo por defecto
+        heel_color = colors.get("talón", colors.get("talon", colors.get("heel", "#FFB6C1")))  # Rosa claro por defecto
+        toe_color = colors.get("punta", colors.get("toe", "#98FB98"))    # Verde claro por defecto
         
         pieces = [
             {
@@ -339,11 +376,15 @@ class PatternGenerator:
         # Ajustar medida de entrepierna para boxer (más corta que pantalones)
         boxer_inseam = min(inseam, 15)
         
-        # Opciones de personalización de colores
-        colors = style_options.get("colors", {})
-        front_color = colors.get("front", "#FFE4B5")    # Beige claro por defecto
-        back_color = colors.get("back", "#F0E68C")      # Amarillo claro por defecto
-        waistband_color = colors.get("waistband", "#DDA0DD")  # Ciruela por defecto
+        # Opciones de personalización de colores (acepta español e inglés)
+        colors = style_options.get("colors", {}).copy() if style_options.get("colors") else {}
+        colores = style_options.get("colores", {}).copy() if style_options.get("colores") else {}
+        colors.update(colores)  # Fusionar ambos diccionarios
+        
+        # Obtener colores con nombres en español o inglés
+        front_color = colors.get("delantero", colors.get("front", "#FFE4B5"))    # Beige claro por defecto
+        back_color = colors.get("trasero", colors.get("back", "#F0E68C"))      # Amarillo claro por defecto
+        waistband_color = colors.get("pretina", colors.get("waistband", "#DDA0DD"))  # Ciruela por defecto
         
         pieces = [
             {
