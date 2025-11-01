@@ -24,6 +24,12 @@ Plataforma modular para diseño y generación de patrones textiles inteligentes 
 - Cálculo de consumo energético
 - Preparado para integración con hardware real
 
+✅ **Soporte Multilingüe**
+- Detección temprana y automática del idioma del sistema
+- 6 idiomas soportados: Español, English, Français, Deutsch, Português, Italiano
+- Cambio dinámico de idioma en tiempo de ejecución
+- API completamente traducida
+
 ## 🚀 Inicio Rápido
 
 ```bash
@@ -47,8 +53,11 @@ Para documentación completa, ver [PHANTOMFIT_STUDIO.md](PHANTOMFIT_STUDIO.md)
 ```python
 from phantomfit_studio import PhantomFitStudio
 
-# Crear estudio
+# Crear estudio (detección automática de idioma)
 studio = PhantomFitStudio()
+
+# O especificar idioma: 'es', 'en', 'fr', 'de', 'pt', 'it'
+studio = PhantomFitStudio(language='en')
 
 # Definir medidas
 measurements = {
@@ -65,6 +74,9 @@ pattern = studio.generate_pattern("blouse", measurements)
 studio.load_phantom_model(measurements)
 studio.visualize_pattern()
 studio.show_3d_view()
+
+# Cambiar idioma dinámicamente
+studio.set_language('fr')
 ```
 
 ## 🔧 Requisitos

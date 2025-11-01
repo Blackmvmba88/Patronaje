@@ -3,7 +3,10 @@ Visualizador 3D de muñeca fantasma
 """
 
 import json
-from typing import Dict, List, Tuple, Any, Optional
+from typing import Dict, List, Tuple, Any, Optional, TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from ..i18n import LanguageManager
 
 
 class PhantomViewer:
@@ -16,14 +19,16 @@ class PhantomViewer:
     - Módulos LED y materiales reflectantes
     """
     
-    def __init__(self, config: Optional[Dict[str, Any]] = None):
+    def __init__(self, config: Optional[Dict[str, Any]] = None, language_manager: Optional['LanguageManager'] = None):
         """
         Inicializa el visualizador.
         
         Args:
             config: Configuración del visualizador
+            language_manager: Gestor de idiomas
         """
         self.config = config or {}
+        self.lang = language_manager
         self.phantom_model = None
         self.current_pattern = None
         self.camera_position = (0, 0, 300)

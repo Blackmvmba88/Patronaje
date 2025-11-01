@@ -6,6 +6,7 @@ from typing import Dict, List, Optional, Any
 from .pattern_generator import PatternGenerator
 from ..visualization.phantom_viewer import PhantomViewer
 from ..integration.module_manager import ModuleManager
+from ..i18n import LanguageManager, detect_system_language
 
 
 class PhantomFitStudio:
@@ -16,19 +17,27 @@ class PhantomFitStudio:
     - Generar patrones de ropa
     - Visualizar en 3D una muñeca fantasma
     - Integración con módulos LED y materiales reflectantes
+    - Soporte multilingüe con detección automática
     """
     
-    def __init__(self, config: Optional[Dict[str, Any]] = None):
+    def __init__(self, config: Optional[Dict[str, Any]] = None, language: Optional[str] = None):
         """
-        Inicializa el estudio PhantomFit.
+        Inicializa el estudio PhantomFit con detección temprana de idioma.
         
         Args:
             config: Configuración opcional del estudio
+            language: Código de idioma (es, en, fr, de, pt, it). 
+                     Si es None, se detecta automáticamente del sistema.
         """
+        # Detección temprana de idioma
+        if language is None:
+            language = detect_system_language()
+        
         self.config = config or {}
-        self.pattern_generator = PatternGenerator()
-        self.phantom_viewer = PhantomViewer(config=self.config.get('viewer', {}))
-        self.module_manager = ModuleManager(config=self.config.get('modules', {}))
+        self.lang = LanguageManager(language)
+        self.pattern_generator = PatternGenerator(language_manager=self.lang)
+        self.phantom_viewer = PhantomViewer(config=self.config.get('viewer', {}), language_manager=self.lang)
+        self.module_manager = ModuleManager(config=self.config.get('modules', {}), language_manager=self.lang)
         self.current_pattern = None
         self.phantom_model = None
         
@@ -146,3 +155,33 @@ class PhantomFitStudio:
             "measurements": self.current_pattern.get("measurements"),
             "modules": self.module_manager.get_active_modules()
         }
+    
+    def set_language(self, language: str) -> bool:
+        """
+        Cambia el idioma del estudio.
+        
+        Args:
+            language: Código de idioma (es, en, fr, de, pt, it)
+            
+        Returns:
+            True si el cambio fue exitoso
+        """
+        return self.lang.set_language(language)
+    
+    def get_language(self) -> str:
+        """
+        Obtiene el idioma actual.
+        
+        Returns:
+            Código del idioma actual
+        """
+        return self.lang.get_current_language()
+    
+    def get_available_languages(self) -> Dict[str, str]:
+        """
+        Obtiene los idiomas disponibles.
+        
+        Returns:
+            Diccionario con códigos y nombres de idiomas
+        """
+        return self.lang.get_available_languages()

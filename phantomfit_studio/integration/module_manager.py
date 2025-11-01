@@ -3,7 +3,10 @@ Gestor de módulos LED y materiales reflectantes
 """
 
 import uuid
-from typing import Dict, List, Any, Optional
+from typing import Dict, List, Any, Optional, TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from ..i18n import LanguageManager
 
 
 class ModuleManager:
@@ -17,14 +20,16 @@ class ModuleManager:
     - Simular comportamiento de componentes tecnológicos
     """
     
-    def __init__(self, config: Optional[Dict[str, Any]] = None):
+    def __init__(self, config: Optional[Dict[str, Any]] = None, language_manager: Optional['LanguageManager'] = None):
         """
         Inicializa el gestor de módulos.
         
         Args:
             config: Configuración opcional del gestor
+            language_manager: Gestor de idiomas
         """
         self.config = config or {}
+        self.lang = language_manager
         self.led_modules = {}
         self.reflective_materials = {}
         self.lighting_patterns = self._default_patterns()

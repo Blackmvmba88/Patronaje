@@ -3,7 +3,10 @@ Generador de patrones de ropa
 """
 
 import math
-from typing import Dict, List, Tuple, Any, Optional
+from typing import Dict, List, Tuple, Any, Optional, TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from ..i18n import LanguageManager
 
 
 class PatternGenerator:
@@ -11,10 +14,11 @@ class PatternGenerator:
     Generador inteligente de patrones de ropa basado en medidas corporales.
     """
     
-    def __init__(self):
+    def __init__(self, language_manager: Optional['LanguageManager'] = None):
         self.supported_garments = [
             "blouse", "shirt", "pants", "skirt", "dress", "jacket"
         ]
+        self.lang = language_manager
     
     def generate(self, 
                  garment_type: str,
