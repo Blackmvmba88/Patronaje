@@ -40,10 +40,19 @@ def main():
         print(f"    - {key}: {value} cm")
     
     print("\n  Generando patrón de calcetín estilo 'crew'...")
+    print("  (Con colores personalizados)")
     sock_pattern = studio.generate_pattern(
         garment_type="sock",
         measurements=sock_measurements,
-        style_options={"style": "crew", "ease": 1}
+        style_options={
+            "style": "crew", 
+            "ease": 1,
+            "colors": {
+                "body": "#87CEEB",   # Azul cielo
+                "heel": "#FFB6C1",   # Rosa claro
+                "toe": "#98FB98"     # Verde claro
+            }
+        }
     )
     
     print(f"\n  ✓ Patrón generado exitosamente!")
@@ -74,10 +83,19 @@ def main():
         print(f"    - {key}: {value} cm")
     
     print("\n  Generando patrón de boxer...")
+    print("  (Con colores personalizados)")
     boxer_pattern = studio.generate_pattern(
         garment_type="boxer",
         measurements=boxer_measurements,
-        style_options={"ease": 5, "leg_opening": "loose"}
+        style_options={
+            "ease": 5, 
+            "leg_opening": "loose",
+            "colors": {
+                "front": "#FFE4B5",    # Beige claro
+                "back": "#F0E68C",     # Amarillo claro
+                "waistband": "#DDA0DD" # Ciruela
+            }
+        }
     )
     
     print(f"\n  ✓ Patrón generado exitosamente!")
@@ -98,16 +116,43 @@ def main():
     output_dir = "/tmp/phantomfit_output"
     os.makedirs(output_dir, exist_ok=True)
     
-    # Exportar calcetín
+    # Exportar calcetín con opciones de personalización
     sock_svg = os.path.join(output_dir, "calcetin_patron.svg")
-    studio.export_pattern(sock_svg, format="svg")
+    studio.export_pattern(
+        sock_svg, 
+        format="svg",
+        export_options={
+            "show_data_box": True,
+            "data_box_position": "top-right",
+            "show_measurements": True,
+            "show_fabric_info": True
+        }
+    )
     print(f"\n  ✓ Patrón de calcetín exportado: {sock_svg}")
+    print(f"    (Con cuadro de datos en esquina superior derecha)")
     
     # Generar boxer nuevamente (para que sea el patrón actual)
-    studio.generate_pattern("boxer", boxer_measurements)
+    studio.generate_pattern("boxer", boxer_measurements, style_options={
+        "ease": 5,
+        "colors": {
+            "front": "#FFE4B5",
+            "back": "#F0E68C",
+            "waistband": "#DDA0DD"
+        }
+    })
     boxer_svg = os.path.join(output_dir, "boxer_patron.svg")
-    studio.export_pattern(boxer_svg, format="svg")
+    studio.export_pattern(
+        boxer_svg, 
+        format="svg",
+        export_options={
+            "show_data_box": True,
+            "data_box_position": "bottom-left",
+            "show_measurements": True,
+            "show_fabric_info": True
+        }
+    )
     print(f"  ✓ Patrón de boxer exportado: {boxer_svg}")
+    print(f"    (Con cuadro de datos en esquina inferior izquierda)")
     
     print("\n" + "="*70)
     print("📊 RESUMEN")

@@ -125,18 +125,19 @@ class PhantomFitStudio:
         """
         return self.module_manager.add_reflective_material(material_config)
     
-    def export_pattern(self, filepath: str, format: str = "svg") -> None:
+    def export_pattern(self, filepath: str, format: str = "svg", export_options: Optional[Dict[str, Any]] = None) -> None:
         """
         Exporta el patrón actual a un archivo.
         
         Args:
             filepath: Ruta del archivo de salida
             format: Formato de exportación (svg, pdf, dxf)
+            export_options: Opciones de personalización de exportación (colores, posición de cuadros de datos, etc.)
         """
         if self.current_pattern is None:
             raise ValueError("No hay patrón para exportar")
         
-        self.pattern_generator.export(self.current_pattern, filepath, format)
+        self.pattern_generator.export(self.current_pattern, filepath, format, export_options)
     
     def get_pattern_info(self) -> Dict[str, Any]:
         """

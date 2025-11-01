@@ -282,6 +282,12 @@ class PatternGenerator:
         
         ease = style_options.get("ease", 1)  # Elasticidad del calcetín
         
+        # Opciones de personalización de colores
+        colors = style_options.get("colors", {})
+        body_color = colors.get("body", "#87CEEB")  # Azul cielo por defecto
+        heel_color = colors.get("heel", "#FFB6C1")  # Rosa claro por defecto
+        toe_color = colors.get("toe", "#98FB98")    # Verde claro por defecto
+        
         pieces = [
             {
                 "name": "sock_body",
@@ -290,19 +296,22 @@ class PatternGenerator:
                     foot_length, foot_width, ankle_circumference, 
                     calf_circumference, sock_height, ease
                 ),
-                "seam_allowance": 0.5
+                "seam_allowance": 0.5,
+                "color": body_color
             },
             {
                 "name": "heel",
                 "type": "heel_patch",
                 "points": self._calculate_sock_heel(foot_length, foot_width, ease),
-                "seam_allowance": 0.5
+                "seam_allowance": 0.5,
+                "color": heel_color
             },
             {
                 "name": "toe",
                 "type": "toe_cap",
                 "points": self._calculate_sock_toe(foot_width, ease),
-                "seam_allowance": 0.5
+                "seam_allowance": 0.5,
+                "color": toe_color
             }
         ]
         
@@ -330,6 +339,12 @@ class PatternGenerator:
         # Ajustar medida de entrepierna para boxer (más corta que pantalones)
         boxer_inseam = min(inseam, 15)
         
+        # Opciones de personalización de colores
+        colors = style_options.get("colors", {})
+        front_color = colors.get("front", "#FFE4B5")    # Beige claro por defecto
+        back_color = colors.get("back", "#F0E68C")      # Amarillo claro por defecto
+        waistband_color = colors.get("waistband", "#DDA0DD")  # Ciruela por defecto
+        
         pieces = [
             {
                 "name": "front",
@@ -337,7 +352,8 @@ class PatternGenerator:
                 "points": self._calculate_boxer_front(
                     waist, hip, thigh, boxer_inseam, rise, ease
                 ),
-                "seam_allowance": 1.0
+                "seam_allowance": 1.0,
+                "color": front_color
             },
             {
                 "name": "back",
@@ -345,13 +361,15 @@ class PatternGenerator:
                 "points": self._calculate_boxer_back(
                     waist, hip, thigh, boxer_inseam, rise, ease
                 ),
-                "seam_allowance": 1.0
+                "seam_allowance": 1.0,
+                "color": back_color
             },
             {
                 "name": "waistband",
                 "type": "band",
                 "points": self._calculate_boxer_waistband(waist, ease),
-                "seam_allowance": 0.5
+                "seam_allowance": 0.5,
+                "color": waistband_color
             }
         ]
         
@@ -621,7 +639,8 @@ class PatternGenerator:
         
         return abs(area) / 2
     
-    def export(self, pattern: Dict[str, Any], filepath: str, format: str = "svg") -> None:
+    def export(self, pattern: Dict[str, Any], filepath: str, format: str = "svg", 
+               export_options: Optional[Dict[str, Any]] = None) -> None:
         """
         Exporta el patrón a un archivo.
         
@@ -629,9 +648,10 @@ class PatternGenerator:
             pattern: Patrón a exportar
             filepath: Ruta del archivo
             format: Formato (svg, pdf, dxf)
+            export_options: Opciones de personalización de exportación
         """
         if format == "svg":
-            self._export_svg(pattern, filepath)
+            self._export_svg(pattern, filepath, export_options)
         elif format == "pdf":
             self._export_pdf(pattern, filepath)
         elif format == "dxf":
@@ -639,29 +659,62 @@ class PatternGenerator:
         else:
             raise ValueError(f"Formato no soportado: {format}")
     
-    def _export_svg(self, pattern: Dict[str, Any], filepath: str) -> None:
-        """Exporta patrón a SVG."""
+    def _export_svg(self, pattern: Dict[str, Any], filepath: str, export_options: Optional[Dict[str, Any]] = None) -> None:
+        """Exporta patrón a SVG con opciones de personalización."""
         pieces = pattern.get("pieces", [])
+        export_options = export_options or {}
+        
+        # Opciones de personalización de cuadros de datos
+        show_data_box = export_options.get("show_data_box", True)
+        data_box_position = export_options.get("data_box_position", "top-right")  # top-right, top-left, bottom-right, bottom-left
+        show_measurements = export_options.get("show_measurements", True)
+        show_fabric_info = export_options.get("show_fabric_info", True)
+        
+        # Opciones de colores y estilos
+        stroke_color = export_options.get("stroke_color", "black")
+        stroke_width = export_options.get("stroke_width", 1)
+        text_color = export_options.get("text_color", "black")
+        font_family = export_options.get("font_family", "Arial")
+        font_size = export_options.get("font_size", 12)
         
         # Crear SVG básico
         svg_content = ['<?xml version="1.0" encoding="UTF-8"?>']
         svg_content.append('<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="1400">')
         
+        # Añadir título del patrón
+        garment_type = pattern.get("garment_type", "patrón")
+        svg_content.append(f'  <text x="500" y="30" text-anchor="middle" ')
+        svg_content.append(f'    font-family="{font_family}" font-size="{font_size + 6}" font-weight="bold" fill="{text_color}">')
+        svg_content.append(f'    Patrón de {garment_type}</text>')
+        
         offset_x = 50
-        offset_y = 50
+        offset_y = 80
         
         for i, piece in enumerate(pieces):
             points = piece.get("points", [])
             if not points:
                 continue
             
+            # Obtener color de la pieza (si existe)
+            piece_color = piece.get("color", "#FFFFFF")
+            
             # Convertir puntos a string SVG
             points_str = " ".join([f"{x + offset_x},{y + offset_y}" for x, y in points])
             
+            # Dibujar polígono con color de relleno personalizado
             svg_content.append(f'  <polygon points="{points_str}" ')
-            svg_content.append(f'    fill="none" stroke="black" stroke-width="1"/>')
+            svg_content.append(f'    fill="{piece_color}" fill-opacity="0.3" stroke="{stroke_color}" stroke-width="{stroke_width}"/>')
+            
+            # Etiqueta de la pieza
             svg_content.append(f'  <text x="{offset_x}" y="{offset_y - 10}" ')
-            svg_content.append(f'    font-family="Arial" font-size="12">{piece["name"]}</text>')
+            svg_content.append(f'    font-family="{font_family}" font-size="{font_size}" fill="{text_color}">')
+            svg_content.append(f'    {piece["name"]} ({piece["type"]})</text>')
+            
+            # Margen de costura
+            seam = piece.get("seam_allowance", 0)
+            svg_content.append(f'  <text x="{offset_x}" y="{offset_y - 25}" ')
+            svg_content.append(f'    font-family="{font_family}" font-size="{font_size - 2}" fill="{text_color}" opacity="0.7">')
+            svg_content.append(f'    Margen: {seam} cm</text>')
             
             # Ajustar offset para la siguiente pieza
             offset_x += 200
@@ -669,10 +722,76 @@ class PatternGenerator:
                 offset_x = 50
                 offset_y += 300
         
+        # Añadir cuadro de datos si está habilitado
+        if show_data_box:
+            self._add_data_box(svg_content, pattern, data_box_position, 
+                              show_measurements, show_fabric_info, 
+                              font_family, font_size, text_color)
+        
         svg_content.append('</svg>')
         
         with open(filepath, 'w') as f:
             f.write('\n'.join(svg_content))
+    
+    def _add_data_box(self, svg_content: List[str], pattern: Dict[str, Any], 
+                      position: str, show_measurements: bool, show_fabric_info: bool,
+                      font_family: str, font_size: int, text_color: str) -> None:
+        """Añade cuadro de datos con información del patrón."""
+        # Determinar posición del cuadro
+        if position == "top-right":
+            box_x, box_y = 700, 80
+        elif position == "top-left":
+            box_x, box_y = 20, 80
+        elif position == "bottom-right":
+            box_x, box_y = 700, 1200
+        else:  # bottom-left
+            box_x, box_y = 20, 1200
+        
+        # Dibujar fondo del cuadro
+        svg_content.append(f'  <rect x="{box_x}" y="{box_y}" width="260" height="180" ')
+        svg_content.append(f'    fill="white" stroke="{text_color}" stroke-width="1" opacity="0.9"/>')
+        
+        y_offset = box_y + 20
+        
+        # Título del cuadro
+        svg_content.append(f'  <text x="{box_x + 10}" y="{y_offset}" ')
+        svg_content.append(f'    font-family="{font_family}" font-size="{font_size}" font-weight="bold" fill="{text_color}">')
+        svg_content.append(f'    Información del Patrón</text>')
+        y_offset += 20
+        
+        # Información de medidas
+        if show_measurements:
+            measurements = pattern.get("measurements", {})
+            svg_content.append(f'  <text x="{box_x + 10}" y="{y_offset}" ')
+            svg_content.append(f'    font-family="{font_family}" font-size="{font_size - 2}" fill="{text_color}">')
+            svg_content.append(f'    Medidas (cm):</text>')
+            y_offset += 15
+            
+            for key, value in list(measurements.items())[:4]:  # Mostrar solo 4 medidas principales
+                svg_content.append(f'  <text x="{box_x + 15}" y="{y_offset}" ')
+                svg_content.append(f'    font-family="{font_family}" font-size="{font_size - 3}" fill="{text_color}">')
+                svg_content.append(f'    • {key}: {value}</text>')
+                y_offset += 12
+        
+        # Información de tela
+        if show_fabric_info:
+            fabric = pattern.get("fabric_required", {})
+            y_offset += 10
+            svg_content.append(f'  <text x="{box_x + 10}" y="{y_offset}" ')
+            svg_content.append(f'    font-family="{font_family}" font-size="{font_size - 2}" fill="{text_color}">')
+            svg_content.append(f'    Tela requerida:</text>')
+            y_offset += 15
+            
+            linear_m = fabric.get("linear_meters", 0)
+            width = fabric.get("fabric_width_cm", 150)
+            svg_content.append(f'  <text x="{box_x + 15}" y="{y_offset}" ')
+            svg_content.append(f'    font-family="{font_family}" font-size="{font_size - 3}" fill="{text_color}">')
+            svg_content.append(f'    • {linear_m:.2f} metros lineales</text>')
+            y_offset += 12
+            
+            svg_content.append(f'  <text x="{box_x + 15}" y="{y_offset}" ')
+            svg_content.append(f'    font-family="{font_family}" font-size="{font_size - 3}" fill="{text_color}">')
+            svg_content.append(f'    • Ancho: {width} cm</text>')
     
     def _export_pdf(self, pattern: Dict[str, Any], filepath: str) -> None:
         """Exporta patrón a PDF."""
