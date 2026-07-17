@@ -3,6 +3,7 @@ Generador de patrones de ropa
 """
 
 import math
+from html import escape as html_escape
 from typing import Dict, List, Tuple, Any, Optional, TYPE_CHECKING
 
 if TYPE_CHECKING:
@@ -372,6 +373,12 @@ class PatternGenerator:
         
         ease = style_options.get("ease", 5)  # Holgura cómoda
         leg_opening = style_options.get("leg_opening", "loose")  # loose, fitted
+        if leg_opening == "loose":
+            leg_opening_adjustment = 0
+        elif leg_opening == "fitted":
+            leg_opening_adjustment = -4
+        else:
+            raise ValueError(f"Apertura de pierna no soportada: {leg_opening}")
         
         # Ajustar medida de entrepierna para boxer (más corta que pantalones)
         boxer_inseam = min(inseam, 15)
@@ -391,7 +398,7 @@ class PatternGenerator:
                 "name": "front",
                 "type": "front_panel",
                 "points": self._calculate_boxer_front(
-                    waist, hip, thigh, boxer_inseam, rise, ease
+                    waist, hip, thigh, boxer_inseam, rise, ease, leg_opening_adjustment
                 ),
                 "seam_allowance": 1.0,
                 "color": front_color
@@ -400,7 +407,7 @@ class PatternGenerator:
                 "name": "back",
                 "type": "back_panel",
                 "points": self._calculate_boxer_back(
-                    waist, hip, thigh, boxer_inseam, rise, ease
+                    waist, hip, thigh, boxer_inseam, rise, ease, leg_opening_adjustment
                 ),
                 "seam_allowance": 1.0,
                 "color": back_color
@@ -551,18 +558,22 @@ class PatternGenerator:
                              ankle_circ: float, calf_circ: float,
                              height: float, ease: float) -> List[Tuple[float, float]]:
         """Calcula puntos del cuerpo del calcetín (patrón plano para tejido tubular)."""
-        # El patrón de calcetín se crea como rectángulo que se enrolla
+        # El patrón de calcetín incluye el tubo de la pierna y la sección principal del pie
         ankle_width = (ankle_circ + ease) / 2
         calf_width = (calf_circ + ease) / 2
         foot_flat_width = (foot_width * 2 + ease) / 2
+        heel_length = foot_length * 0.25
+        toe_length = foot_width * 0.8
+        foot_body_length = max(foot_length - heel_length - toe_length, foot_width)
         
         return [
             (0, 0),
-            (ankle_width, 0),
-            (calf_width, height * 0.3),
-            (calf_width, height),
-            (0, height),
-            (0, height * 0.3),
+            (foot_flat_width, 0),
+            (foot_flat_width, foot_body_length),
+            (ankle_width, foot_body_length),
+            (calf_width, foot_body_length + height * 0.3),
+            (calf_width, foot_body_length + height),
+            (0, foot_body_length + height),
             (0, 0)
         ]
     
@@ -596,11 +607,12 @@ class PatternGenerator:
         ]
     
     def _calculate_boxer_front(self, waist: float, hip: float, thigh: float,
-                               inseam: float, rise: float, ease: float) -> List[Tuple[float, float]]:
+                               inseam: float, rise: float, ease: float,
+                               leg_opening_adjustment: float = 0) -> List[Tuple[float, float]]:
         """Calcula puntos del delantero del boxer."""
         waist_width = (waist + ease) / 4
         hip_width = (hip + ease) / 4
-        thigh_width = (thigh + ease) / 4
+        thigh_width = max((thigh + ease + leg_opening_adjustment) / 4, 1)
         
         return [
             (0, 0),
@@ -614,11 +626,12 @@ class PatternGenerator:
         ]
     
     def _calculate_boxer_back(self, waist: float, hip: float, thigh: float,
-                              inseam: float, rise: float, ease: float) -> List[Tuple[float, float]]:
+                              inseam: float, rise: float, ease: float,
+                              leg_opening_adjustment: float = 0) -> List[Tuple[float, float]]:
         """Calcula puntos de la parte trasera del boxer."""
         waist_width = (waist + ease) / 4 + 2
         hip_width = (hip + ease) / 4 + 2
-        thigh_width = (thigh + ease) / 4
+        thigh_width = max((thigh + ease + leg_opening_adjustment) / 4, 1)
         
         return [
             (0, 0),
@@ -659,7 +672,8 @@ class PatternGenerator:
         
         # Calcular metros lineales asumiendo ancho estándar de tela de 150cm
         fabric_width = 150
-        linear_meters = total_area / fabric_width
+        linear_centimeters = total_area / fabric_width
+        linear_meters = linear_centimeters / 100
         
         return {
             "total_area_cm2": total_area,
@@ -717,6 +731,9 @@ class PatternGenerator:
         text_color = export_options.get("text_color", "black")
         font_family = export_options.get("font_family", "Arial")
         font_size = export_options.get("font_size", 12)
+        stroke_color_attr = html_escape(str(stroke_color), quote=True)
+        text_color_attr = html_escape(str(text_color), quote=True)
+        font_family_attr = html_escape(str(font_family), quote=True)
         
         # Crear SVG básico
         svg_content = ['<?xml version="1.0" encoding="UTF-8"?>']
@@ -725,8 +742,8 @@ class PatternGenerator:
         # Añadir título del patrón
         garment_type = pattern.get("garment_type", "patrón")
         svg_content.append(f'  <text x="500" y="30" text-anchor="middle" ')
-        svg_content.append(f'    font-family="{font_family}" font-size="{font_size + 6}" font-weight="bold" fill="{text_color}">')
-        svg_content.append(f'    Patrón de {garment_type}</text>')
+        svg_content.append(f'    font-family="{font_family_attr}" font-size="{font_size + 6}" font-weight="bold" fill="{text_color_attr}">')
+        svg_content.append(f'    Patrón de {html_escape(str(garment_type))}</text>')
         
         offset_x = 50
         offset_y = 80
@@ -738,23 +755,26 @@ class PatternGenerator:
             
             # Obtener color de la pieza (si existe)
             piece_color = piece.get("color", "#FFFFFF")
+            piece_color_attr = html_escape(str(piece_color), quote=True)
+            piece_name_text = html_escape(str(piece["name"]))
+            piece_type_text = html_escape(str(piece["type"]))
             
             # Convertir puntos a string SVG
             points_str = " ".join([f"{x + offset_x},{y + offset_y}" for x, y in points])
             
             # Dibujar polígono con color de relleno personalizado
             svg_content.append(f'  <polygon points="{points_str}" ')
-            svg_content.append(f'    fill="{piece_color}" fill-opacity="0.3" stroke="{stroke_color}" stroke-width="{stroke_width}"/>')
+            svg_content.append(f'    fill="{piece_color_attr}" fill-opacity="0.3" stroke="{stroke_color_attr}" stroke-width="{stroke_width}"/>')
             
             # Etiqueta de la pieza
             svg_content.append(f'  <text x="{offset_x}" y="{offset_y - 10}" ')
-            svg_content.append(f'    font-family="{font_family}" font-size="{font_size}" fill="{text_color}">')
-            svg_content.append(f'    {piece["name"]} ({piece["type"]})</text>')
+            svg_content.append(f'    font-family="{font_family_attr}" font-size="{font_size}" fill="{text_color_attr}">')
+            svg_content.append(f'    {piece_name_text} ({piece_type_text})</text>')
             
             # Margen de costura
             seam = piece.get("seam_allowance", 0)
             svg_content.append(f'  <text x="{offset_x}" y="{offset_y - 25}" ')
-            svg_content.append(f'    font-family="{font_family}" font-size="{font_size - 2}" fill="{text_color}" opacity="0.7">')
+            svg_content.append(f'    font-family="{font_family_attr}" font-size="{font_size - 2}" fill="{text_color_attr}" opacity="0.7">')
             svg_content.append(f'    Margen: {seam} cm</text>')
             
             # Ajustar offset para la siguiente pieza
@@ -771,32 +791,34 @@ class PatternGenerator:
         
         svg_content.append('</svg>')
         
-        with open(filepath, 'w') as f:
+        with open(filepath, 'w', encoding='utf-8') as f:
             f.write('\n'.join(svg_content))
     
     def _add_data_box(self, svg_content: List[str], pattern: Dict[str, Any], 
                       position: str, show_measurements: bool, show_fabric_info: bool,
                       font_family: str, font_size: int, text_color: str) -> None:
         """Añade cuadro de datos con información del patrón."""
-        # Determinar posición del cuadro
-        if position == "top-right":
-            box_x, box_y = 700, 80
-        elif position == "top-left":
-            box_x, box_y = 20, 80
-        elif position == "bottom-right":
-            box_x, box_y = 700, 1200
-        else:  # bottom-left
-            box_x, box_y = 20, 1200
+        positions = {
+            "top-right": (700, 80),
+            "top-left": (20, 80),
+            "bottom-right": (700, 1200),
+            "bottom-left": (20, 1200)
+        }
+        if position not in positions:
+            raise ValueError(f"Posición de cuadro de datos no soportada: {position}")
+        box_x, box_y = positions[position]
+        font_family_attr = html_escape(str(font_family), quote=True)
+        text_color_attr = html_escape(str(text_color), quote=True)
         
         # Dibujar fondo del cuadro
         svg_content.append(f'  <rect x="{box_x}" y="{box_y}" width="260" height="180" ')
-        svg_content.append(f'    fill="white" stroke="{text_color}" stroke-width="1" opacity="0.9"/>')
+        svg_content.append(f'    fill="white" stroke="{text_color_attr}" stroke-width="1" opacity="0.9"/>')
         
         y_offset = box_y + 20
         
         # Título del cuadro
         svg_content.append(f'  <text x="{box_x + 10}" y="{y_offset}" ')
-        svg_content.append(f'    font-family="{font_family}" font-size="{font_size}" font-weight="bold" fill="{text_color}">')
+        svg_content.append(f'    font-family="{font_family_attr}" font-size="{font_size}" font-weight="bold" fill="{text_color_attr}">')
         svg_content.append(f'    Información del Patrón</text>')
         y_offset += 20
         
@@ -804,14 +826,14 @@ class PatternGenerator:
         if show_measurements:
             measurements = pattern.get("measurements", {})
             svg_content.append(f'  <text x="{box_x + 10}" y="{y_offset}" ')
-            svg_content.append(f'    font-family="{font_family}" font-size="{font_size - 2}" fill="{text_color}">')
+            svg_content.append(f'    font-family="{font_family_attr}" font-size="{font_size - 2}" fill="{text_color_attr}">')
             svg_content.append(f'    Medidas (cm):</text>')
             y_offset += 15
             
             for key, value in list(measurements.items())[:4]:  # Mostrar solo 4 medidas principales
                 svg_content.append(f'  <text x="{box_x + 15}" y="{y_offset}" ')
-                svg_content.append(f'    font-family="{font_family}" font-size="{font_size - 3}" fill="{text_color}">')
-                svg_content.append(f'    • {key}: {value}</text>')
+                svg_content.append(f'    font-family="{font_family_attr}" font-size="{font_size - 3}" fill="{text_color_attr}">')
+                svg_content.append(f'    • {html_escape(str(key))}: {html_escape(str(value))}</text>')
                 y_offset += 12
         
         # Información de tela
@@ -819,19 +841,19 @@ class PatternGenerator:
             fabric = pattern.get("fabric_required", {})
             y_offset += 10
             svg_content.append(f'  <text x="{box_x + 10}" y="{y_offset}" ')
-            svg_content.append(f'    font-family="{font_family}" font-size="{font_size - 2}" fill="{text_color}">')
+            svg_content.append(f'    font-family="{font_family_attr}" font-size="{font_size - 2}" fill="{text_color_attr}">')
             svg_content.append(f'    Tela requerida:</text>')
             y_offset += 15
             
             linear_m = fabric.get("linear_meters", 0)
             width = fabric.get("fabric_width_cm", 150)
             svg_content.append(f'  <text x="{box_x + 15}" y="{y_offset}" ')
-            svg_content.append(f'    font-family="{font_family}" font-size="{font_size - 3}" fill="{text_color}">')
+            svg_content.append(f'    font-family="{font_family_attr}" font-size="{font_size - 3}" fill="{text_color_attr}">')
             svg_content.append(f'    • {linear_m:.2f} metros lineales</text>')
             y_offset += 12
             
             svg_content.append(f'  <text x="{box_x + 15}" y="{y_offset}" ')
-            svg_content.append(f'    font-family="{font_family}" font-size="{font_size - 3}" fill="{text_color}">')
+            svg_content.append(f'    font-family="{font_family_attr}" font-size="{font_size - 3}" fill="{text_color_attr}">')
             svg_content.append(f'    • Ancho: {width} cm</text>')
     
     def _export_pdf(self, pattern: Dict[str, Any], filepath: str) -> None:

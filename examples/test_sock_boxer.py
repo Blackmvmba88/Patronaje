@@ -10,6 +10,7 @@ import os
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 from phantomfit_studio import PhantomFitStudio
+from phantomfit_studio.core.pattern_generator import PatternGenerator
 
 
 def test_sock_generation():
@@ -182,6 +183,68 @@ def test_export():
     return True
 
 
+def test_review_comment_fixes():
+    """Prueba específica de las correcciones solicitadas en revisión."""
+    print("\n" + "="*60)
+    print("TEST: Correcciones de Review")
+    print("="*60)
+    
+    generator = PatternGenerator()
+    
+    short_sock = generator._calculate_sock_body(20, 10, 22, 35, 20, 1)
+    long_sock = generator._calculate_sock_body(30, 10, 22, 35, 20, 1)
+    assert short_sock != long_sock, "foot_length debe afectar el cuerpo del calcetín"
+    
+    loose_boxer = generator._generate_boxer(
+        {"waist": 75, "hip": 95, "inseam": 10, "thigh_circumference": 55, "rise": 25},
+        {"ease": 5, "leg_opening": "loose"}
+    )
+    fitted_boxer = generator._generate_boxer(
+        {"waist": 75, "hip": 95, "inseam": 10, "thigh_circumference": 55, "rise": 25},
+        {"ease": 5, "leg_opening": "fitted"}
+    )
+    assert fitted_boxer["pieces"][0]["points"][4][0] < loose_boxer["pieces"][0]["points"][4][0], \
+        "leg_opening='fitted' debe reducir la apertura de pierna"
+    
+    fabric = generator._calculate_fabric_required([
+        {"points": [(0, 0), (150, 0), (150, 150), (0, 150)]}
+    ])
+    assert abs(fabric["linear_meters"] - 1.8) < 1e-9, "linear_meters debe expresarse en metros"
+    
+    studio = PhantomFitStudio()
+    pattern = studio.generate_pattern(
+        "blouse",
+        {
+            "special<&key>": "A&B",
+            "bust": 90,
+            "waist": 70,
+            "shoulder": 40,
+            "back_length": 40,
+            "sleeve_length": 58
+        }
+    )
+    
+    output_dir = "/tmp/phantomfit_output"
+    os.makedirs(output_dir, exist_ok=True)
+    svg_path = os.path.join(output_dir, "review_fixes.svg")
+    studio.export_pattern(svg_path, export_options={"data_box_position": "top-right"})
+    
+    with open(svg_path, "r", encoding="utf-8") as f:
+        content = f.read()
+        assert "special&lt;&amp;key&gt;: A&amp;B" in content, "Las medidas deben escaparse en SVG"
+        assert "Patrón de blouse" in content, "El SVG debe mantenerse legible en UTF-8"
+    
+    try:
+        studio.export_pattern(svg_path, export_options={"data_box_position": "invalid-position"})
+    except ValueError:
+        pass
+    else:
+        raise AssertionError("data_box_position inválido debe generar ValueError")
+    
+    print("\n  ✓ TEST PASADO")
+    return True
+
+
 def main():
     """Ejecutar todos los tests."""
     print("\n" + "="*60)
@@ -193,6 +256,7 @@ def main():
         test_boxer_generation()
         test_combined_measurements()
         test_export()
+        test_review_comment_fixes()
         
         print("\n" + "="*60)
         print("✓✓✓ TODOS LOS TESTS PASADOS ✓✓✓")
