@@ -30,10 +30,17 @@ def test_pattern_generation():
         "inseam": 75,
         "outseam": 100,
         "skirt_length": 60,
-        "dress_length": 100
+        "dress_length": 100,
+        "foot_length": 25,
+        "foot_width": 10,
+        "ankle_circumference": 22,
+        "calf_circumference": 35,
+        "sock_height": 20,
+        "thigh_circumference": 55,
+        "rise": 25
     }
     
-    garment_types = ["blouse", "shirt", "pants", "skirt", "dress", "jacket"]
+    garment_types = ["blouse", "shirt", "pants", "skirt", "dress", "jacket", "sock", "boxer"]
     
     for garment_type in garment_types:
         try:
